@@ -16,8 +16,9 @@ RUN pip install --no-cache-dir python-dotenv
 # Instala o gunicorn para o servidor http
 RUN pip install --no-cache-dir gunicorn
 
-# Copia o código para o container
+# Copia o código do projeto para o container
 COPY ./todo_project .
 
-# Libera a porta 5000
-EXPOSE 5000
+# Libera a porta do container
+ARG PORT
+EXPOSE ${PORT}

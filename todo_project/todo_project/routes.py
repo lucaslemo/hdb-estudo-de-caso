@@ -45,9 +45,11 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user)
             task_form = TaskForm()
-            flash('Login Successfull', 'success')
+            flash('Login Successful', 'success')
+            app.logger.info(f'Sucesso no login para o usuário: {form.username.data}')
             return redirect(url_for('all_tasks'))
         else:
+            app.logger.warning(f'Falha na tentativa de login para o usuário: {form.username.data}')
             flash('Login Unsuccessful. Please check Username Or Password', 'danger')
     
     return render_template('login.html', title='Login', form=form)
@@ -71,8 +73,10 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash(f'Account Created For {form.username.data}', 'success')
+        app.logger.info(f'Sucesso no cadastro do usuário: {form.username.data}')
         return redirect(url_for('login'))
 
+    app.logger.warning(f'Falha na tentativa de cadastro do usuário: {form.username.data}')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -80,6 +84,7 @@ def register():
 @login_required
 def all_tasks():
     tasks = User.query.filter_by(username=current_user.username).first().tasks
+    app.logger.info(f'Visualização das lista de tarefas do usuário: {current_user.username}')
     return render_template('all_tasks.html', title='All Tasks', tasks=tasks)
 
 
@@ -92,6 +97,7 @@ def add_task():
         db.session.add(task)
         db.session.commit()
         flash('Task Created', 'success')
+        app.logger.info(f'Sucesso na criação da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
         return redirect(url_for('add_task'))
     return render_template('add_task.html', form=form, title='Add Task')
 
@@ -106,6 +112,7 @@ def update_task(task_id):
             task.content = form.task_name.data
             db.session.commit()
             flash('Task Updated', 'success')
+            app.logger.info(f'Sucesso na atualização da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
             return redirect(url_for('all_tasks'))
         else:
             flash('No Changes Made', 'warning')
@@ -130,14 +137,15 @@ def delete_task(task_id):
 def account():
     form = UpdateUserInfoForm()
     if form.validate_on_submit():
-        if form.username.data != current_user.username:  
+        if form.username.data != current_user.username:
+            old_name = current_user.username
             current_user.username = form.username.data
             db.session.commit()
             flash('Username Updated Successfully', 'success')
+            app.logger.info(f'Sucesso na atualização do usuário: {old_name} para: {current_user.username}')
             return redirect(url_for('account'))
     elif request.method == 'GET':
-        form.username.data = current_user.username 
-
+        form.username.data = current_user.username
     return render_template('account.html', title='Account Settings', form=form)
 
 
@@ -150,9 +158,10 @@ def change_password():
             current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
             db.session.commit()
             flash('Password Changed Successfully', 'success')
+            app.logger.info(f'Sucesso na atualização da senha do usuário: {current_user.username}')
             redirect(url_for('account'))
         else:
-            flash('Please Enter Correct Password', 'danger') 
-
+            flash('Please Enter Correct Password', 'danger')
+            app.logger.warning(f'Falha na atualização da senha do usuário: {current_user.username}')
     return render_template('change_password.html', title='Change Password', form=form)
 
