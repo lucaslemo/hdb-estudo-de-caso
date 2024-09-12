@@ -13,4 +13,4 @@ gitlab-runner register \
     --executor docker \
     --docker-image docker:stable \
     --docker-volumes "/var/run/docker.sock:/var/run/docker.sock" \
-    --docker-network-mode gitlab
+    --docker-network-mode hdb-estudo-de-caso_gitlab
