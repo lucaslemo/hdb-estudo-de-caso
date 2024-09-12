@@ -2,14 +2,10 @@ variables:
   APP_PORT: 8080
   APP_HOST: 0.0.0.0
   IMAGE_TAG: lucaslemo/flask:1.0.0
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_CLIENT_TIMEOUT: 600
-  COMPOSE_HTTP_TIMEOUT: 600    
-  DOCKER_BUILDKIT: 0
-  COMPOSE_DOCKER_CLI_BUILD: 0
 
 stages:
   - build
+  - deploy
 
 build_job:
    stage: build
@@ -18,3 +14,21 @@ build_job:
        - docker:20.10.16-dind
    script:
        - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
+
+deploy_job:
+    stage: deploy
+    image: docker:20.10.16
+    services:
+        - docker:20.10.16-dind
+    before_script:        
+        - echo "Remove containers antigos"
+        - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
+        - echo $PORT_CONTAINERS
+        - if [ -n "$PORT_CONTAINERS" ]; then
+            docker stop $PORT_CONTAINERS;
+            docker rm $PORT_CONTAINERS;
+            sleep 5; 
+          fi
+    script:
+        - echo "Deploy do app"
+        - docker compose up -d
