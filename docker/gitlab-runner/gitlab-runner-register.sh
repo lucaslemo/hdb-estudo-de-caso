@@ -1,9 +1,9 @@
 #!/bin/sh
 # Token e Registro
-registration_token="<Insira o token criado no Passo 1.2.e>"
-url="http://192.168.98.10"
+registration_token="GR1348941VNgDGwZX4KeyehVbmw3h"
+url="http://gitlab"
 
-sudo docker exec -it gitlab-runner1 \
+docker exec -it gitlab-runner \
 gitlab-runner register \
     --non-interactive \
     --registration-token ${registration_token} \

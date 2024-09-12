@@ -1,0 +1,15 @@
+variables: 
+  APP_PORT: 8080
+  APP_HOST: 0.0.0.0
+  IMAGE_TAG: lucaslemo/flask:1.0.0
+
+stages:
+  - build
+
+build_job:
+   stage: build
+   image: docker:20.10.16
+   services:
+       - docker:20.10.16-dind
+   script:
+       - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .

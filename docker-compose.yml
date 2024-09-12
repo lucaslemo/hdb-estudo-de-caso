@@ -52,7 +52,6 @@ services:
       - gitlab
     restart: always
 
-
 networks:
   gitlab:
     driver: bridge
