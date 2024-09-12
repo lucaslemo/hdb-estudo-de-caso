@@ -2,6 +2,11 @@ variables:
   APP_PORT: 8080
   APP_HOST: 0.0.0.0
   IMAGE_TAG: lucaslemo/flask:1.0.0
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_CLIENT_TIMEOUT: 600
+  COMPOSE_HTTP_TIMEOUT: 600    
+  DOCKER_BUILDKIT: 0
+  COMPOSE_DOCKER_CLI_BUILD: 0
 
 stages:
   - build
