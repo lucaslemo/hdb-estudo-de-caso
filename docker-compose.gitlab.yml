@@ -33,4 +33,5 @@ services:
 
 networks:
   gitlab:
-    driver: bridge
+    name: gitlab
+    external: true
