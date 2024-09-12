@@ -20,3 +20,39 @@ services:
       PYTHONUNBUFFERED: 1
     restart: always
     command: gunicorn --bind "${APP_HOST}:${APP_PORT}" todo_project:app
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    ports:
+      - 80:80
+      - 443:443
+      - 22:22
+    volumes:
+      - './docker/gitlab/config:/etc/gitlab'
+      - './docker/gitlab/logs:/var/log/gitlab'
+      - './docker/gitlab/data:/var/opt/gitlab'
+    hostname: 'gitlab.example.com'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+    networks:
+      - gitlab
+
+  gitlab-runner:
+    image: 'gitlab/gitlab-runner:latest'
+    container_name: gitlab-runner
+    depends_on:
+      - gitlab
+    volumes:
+      - './docker/gitlab-runner/config:/etc/gitlab-runner'
+      - /var/run/docker.sock:/var/run/docker.sock
+    hostname: gitlab-runner
+    networks:
+      - gitlab
+    restart: always
+
+
+networks:
+  gitlab:
+    driver: bridge
