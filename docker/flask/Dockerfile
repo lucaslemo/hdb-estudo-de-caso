@@ -1,7 +1,7 @@
 # Imagem base oficial do Python
 FROM python:3.10.15-slim
 
-# Atualiza as dependencias da imagem 
+# Atualiza as dependencias do sistema 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
