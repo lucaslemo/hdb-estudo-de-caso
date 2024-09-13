@@ -10,7 +10,6 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
-      - ./todo_project:/app
       - /dev/log:/dev/log
     environment:
       FLASK_ENV: ${FLASK_ENV}

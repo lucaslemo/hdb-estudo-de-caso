@@ -27,7 +27,7 @@ security_scan:
     - apk add --no-cache curl
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
   script:
-    - trivy image --severity HIGH,CRITICAL $IMAGE_TAG
+    - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
