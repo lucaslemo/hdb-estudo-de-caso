@@ -27,6 +27,8 @@ RUN pip install --no-cache-dir python-dotenv
 RUN pip install --no-cache-dir gunicorn
 
 # Copia o código do projeto para o container
+RUN mkdir /var/www/database
+COPY todo_project/todo_project/site.db /var/www/database
 COPY todo_project/ .
 
 # Libera a porta do container
