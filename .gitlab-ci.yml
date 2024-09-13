@@ -20,7 +20,7 @@ deploy_job:
     image: docker:20.10.16
     services:
         - docker:20.10.16-dind
-    before_script:        
+    before_script:
         - echo "Remove containers antigos"
         - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
         - echo $PORT_CONTAINERS
@@ -32,4 +32,4 @@ deploy_job:
     script:
         - echo "Deploy do app"
         - cp .env.example .env
-        - docker compose up -d
+        - docker compose up -d --build
