@@ -14,7 +14,6 @@ services:
     environment:
       GITLAB_OMNIBUS_CONFIG: |
         EXTERNAL_URL='http://gitlab'
-        GITLAB_ROOT_PASSWORD='RnpEsr123@'
     networks:
       - gitlab
 
