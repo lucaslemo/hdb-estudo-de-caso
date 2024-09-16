@@ -10,8 +10,8 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
     volumes:
-      - ./todo_project:/app
-      - /dev/log:/dev/log
+      - /usr/hdb/db:/usr/hdb/db:rw
+      - /dev/log:/dev/log:rw
     environment:
       FLASK_ENV: ${FLASK_ENV}
       FLASK_DEBUG: ${FLASK_DEBUG}

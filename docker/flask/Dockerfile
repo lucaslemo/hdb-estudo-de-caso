@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir gunicorn
 # Copia o código do projeto para o container
 COPY todo_project/ .
 
+# CriadDiretório para o banco de dados
+RUN mkdir -p /usr/hdb/db
+
 # Libera a porta do container
 ARG PORT=5000
 EXPOSE ${PORT}
