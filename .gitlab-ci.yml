@@ -18,20 +18,14 @@ build_job:
 
 security_scan:
   stage: image_scan
-  image: docker:stable
+  image: docker:20.10.16
   services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay2
+    - docker:20.10.16-dind
   before_script:
     - apk add --no-cache curl
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
   script:
     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - /root/.cache/trivy
 
 deploy_job:
     stage: deploy
@@ -39,7 +33,7 @@ deploy_job:
     services:
         - docker:20.10.16-dind
     before_script:
-        - echo "Remove containers antigos"
+        - docker compose down
         - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
         - echo $PORT_CONTAINERS
         - if [ -n "$PORT_CONTAINERS" ]; then
@@ -48,6 +42,5 @@ deploy_job:
             sleep 5; 
           fi
     script:
-        - echo "Deploy do app"
-        - cp /.env
+        - cp /usr/hdb/.env /var/www/app
         - docker compose up -d
