@@ -24,6 +24,6 @@ services:
     command: gunicorn --bind "${APP_HOST}:${APP_PORT}" todo_project:app
 
 networks:
-  gitlab:
+  todo_project:
     name: todo_project
     external: true
