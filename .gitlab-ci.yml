@@ -5,7 +5,8 @@ variables:
 
 stages:
   - build
-  - test
+  - image_scan
+  - static_scan
   - deploy
 
 build_job:
@@ -17,7 +18,7 @@ build_job:
        - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
 security_scan:
-  stage: test
+  stage: image_scan
   image: docker:stable
   services:
     - docker:dind
@@ -32,6 +33,13 @@ security_scan:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
       - /root/.cache/trivy
+
+bandit_scan:
+  image: kondukto/bandit:latest
+  stage: bandit
+  script:
+    - bandit -r ./ --exit-zero
+  allow_failure: true
 
 deploy_job:
     stage: deploy
