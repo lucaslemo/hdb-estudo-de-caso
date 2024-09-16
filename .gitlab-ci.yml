@@ -49,5 +49,5 @@ deploy_job:
           fi
     script:
         - echo "Deploy do app"
-        - cp .env.example .env
-        - docker compose up -d --build
+        - cp /.env
+        - docker compose up -d
