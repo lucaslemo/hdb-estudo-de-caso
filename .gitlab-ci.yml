@@ -1,5 +1,8 @@
 variables:
-  PORT: 8888
+  APP_HOST: 0.0.0.0
+  APP_PORT: 8888
+  FLASK_ENV: production
+  FLASK_DEBUG: False
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
 stages:
@@ -27,12 +30,12 @@ deploy_job:
     image: docker:latest
     before_script:
         - touch .env
-        - echo "$FLASK_ENV" >> .env
-        - echo "$FLASK_DEBUG" >> .env
-        - echo "$SECRET_KEY" >> .env
-        - echo "$DATABASE_URL" >> .env
-        - echo "$APP_PORT" >> .env
-        - echo "$APP_HOST" >> .env
+        - echo "FLASK_ENV=$FLASK_ENV" >> .env
+        - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+        - echo "SECRET_KEY=$SECRET_KEY" >> .env
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env
+        - echo "APP_PORT=$APP_PORT" >> .env
+        - echo "APP_HOST=$APP_HOST" >> .env
         - cat .env
         - docker compose down
         - PORT_CONTAINERS=$(docker ps --filter "publish=$PORT" -q)
