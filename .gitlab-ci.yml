@@ -42,7 +42,8 @@ deploy_job:
     - echo "DATABASE_URL=$DATABASE_URL" >> .env
     - echo "APP_PORT=$APP_PORT" >> .env
     - echo "APP_HOST=$APP_HOST" >> .env
-    - cat .env
+    - pwd
+    - ls -la
     - docker compose down
     - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
     - echo $PORT_CONTAINERS
