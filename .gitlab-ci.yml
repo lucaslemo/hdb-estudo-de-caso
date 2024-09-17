@@ -4,9 +4,20 @@ variables:
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
 stages:
+  - prepare
   - build
   - image_scan
   - deploy
+
+prepare_env:
+  stage: prepare
+  image: docker:latest
+  script:
+      - mkdir -p /builds/var/www/app
+      - cp /usr/hdb/.env /builds/var/www/app/.env
+  artifacts:
+      paths:
+          - /builds/var/www/app/.env
 
 build_job:
    stage: build
