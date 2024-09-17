@@ -33,6 +33,7 @@ deploy_job:
     services:
         - docker:20.10.16-dind
     before_script:
+        - cp /usr/hdb/.env /builds/var/www/app/.env
         - docker compose down
         - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
         - echo $PORT_CONTAINERS
@@ -42,5 +43,4 @@ deploy_job:
             sleep 5; 
           fi
     script:
-        - cp /usr/hdb/.env /var/www/app
         - docker compose up -d
