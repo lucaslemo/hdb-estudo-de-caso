@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: docker/flask/Dockerfile
       args:
-        - port=${APP_PORT}
+        - PORT=${APP_PORT}
     container_name: flask
     ports:
       - "${APP_PORT}:${APP_PORT}"
