@@ -8,6 +8,7 @@ variables:
 stages:
   - build
   - image_scan
+  - app_test
   - deploy
 
 build_job:
@@ -28,6 +29,22 @@ security_scan:
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
   script:
     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
+
+run_tests:
+  stage: app_test
+  image: python:3.10.15-slim
+  script:
+    - touch .env
+    - echo "DATABASE_URL=sqlite:///:memory:" >> .env
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir python-dotenv
+    - pip install --no-cache-dir pytest
+    - pytest todo_project/todo_project/tests/test_app.py --junitxml=report_test.xml
+  artifacts:
+    when: always
+    paths:
+      - report_test.xml
 
 deploy_job:
   stage: deploy

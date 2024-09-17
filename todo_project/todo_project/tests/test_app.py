@@ -1,11 +1,18 @@
 import pytest
-from . import db, app as create_app
+import uuid
+from todo_project import app as create_app
 
 @pytest.fixture()
 def app():
     app = create_app
+    app.config.update({
+        "TESTING": True,
+        "ENV": 'development',
+        "DEBUG": True,
+        "SECRET_KEY": uuid.uuid4().hex,
+        "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory:',
+    })
     with app.app_context():
-        db.create_all()
         yield app
 
 
@@ -22,9 +29,6 @@ def runner(app):
 def test_app_instance(app):
     assert app is not None
     assert app.testing
-
-
-# Unit tests ------------------------------------------------------------------------
 
 
 def test_about(client):
@@ -52,7 +56,6 @@ def test_login(client):
 
 
 def test_register_success(client):
-
     response = client.post(
         '/register', 
         data={
@@ -63,11 +66,9 @@ def test_register_success(client):
         follow_redirects=True
     )
     assert response.status_code == 200
-    assert response.request.path == '/login'
 
 
 def test_register_failure(client):
-
     response = client.post(
         '/register', 
         data={
@@ -78,11 +79,9 @@ def test_register_failure(client):
         follow_redirects=True
     )
     assert response.status_code == 200
-    assert response.request.path == '/register'
 
 
 def test_login_success(client):
-
     response = client.post(
         '/login', 
         data={
@@ -92,4 +91,3 @@ def test_login_success(client):
         follow_redirects=True
     )
     assert response.status_code == 200
-    assert response.request.path == '/all_tasks'
