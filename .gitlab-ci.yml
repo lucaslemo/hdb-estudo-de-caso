@@ -14,7 +14,7 @@ build_job:
    stage: build
    image: docker:latest
    script:
-       - docker build --build-arg PORT=$PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
+       - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
 security_scan:
   stage: image_scan
@@ -38,7 +38,7 @@ deploy_job:
         - echo "APP_HOST=$APP_HOST" >> .env
         - cat .env
         - docker compose down
-        - PORT_CONTAINERS=$(docker ps --filter "publish=$PORT" -q)
+        - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
         - echo $PORT_CONTAINERS
         - if [ -n "$PORT_CONTAINERS" ]; then
             docker stop $PORT_CONTAINERS;
