@@ -75,8 +75,10 @@ def register():
         flash(f'Account Created For {form.username.data}', 'success')
         app.logger.info(f'Sucesso no cadastro do usuário: {form.username.data}')
         return redirect(url_for('login'))
+    
+    elif request.method == 'POST':
+        app.logger.warning(f'Falha na tentativa de cadastro do usuário: {form.username.data}')
 
-    app.logger.warning(f'Falha na tentativa de cadastro do usuário: {form.username.data}')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -99,6 +101,10 @@ def add_task():
         flash('Task Created', 'success')
         app.logger.info(f'Sucesso na criação da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
         return redirect(url_for('add_task'))
+    
+    elif request.method == 'POST':
+        app.logger.warning(f'Falha na criação da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
+
     return render_template('add_task.html', form=form, title='Add Task')
 
 
@@ -117,8 +123,13 @@ def update_task(task_id):
         else:
             flash('No Changes Made', 'warning')
             return redirect(url_for('all_tasks'))
+        
+    elif request.method == 'POST':
+        app.logger.warning(f'Falha na atualização da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
+
     elif request.method == 'GET':
         form.task_name.data = task.content
+
     return render_template('add_task.html', title='Update Task', form=form)
 
 
@@ -126,9 +137,11 @@ def update_task(task_id):
 @login_required
 def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
+    task_name = task.content
     db.session.delete(task)
     db.session.commit()
     flash('Task Deleted', 'info')
+    app.logger.info(f'Sucesso na exclusão da tarefa: {task_name}, pelo usuário: {current_user.username}')
     return redirect(url_for('all_tasks'))
 
 
@@ -144,6 +157,10 @@ def account():
             flash('Username Updated Successfully', 'success')
             app.logger.info(f'Sucesso na atualização do usuário: {old_name} para: {current_user.username}')
             return redirect(url_for('account'))
+        
+    elif request.method == 'POST':
+        app.logger.warning(f'Falha na atualização do usuário: {current_user.username} para: {form.username.data}')
+
     elif request.method == 'GET':
         form.username.data = current_user.username
     return render_template('account.html', title='Account Settings', form=form)
