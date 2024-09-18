@@ -13,7 +13,7 @@ def app():
         "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory:',
     })
     with app.app_context():
-        print(db.engine)
+        print(db)
         yield app
 
 
@@ -53,7 +53,7 @@ def test_register(client):
 def test_login(client):
     response = client.get('/login')
     assert response.status_code == 200
-    assert response.request.path == '/login'
+    assert response.request.path == '/login1'
 
 
 # def test_register_success(client):
