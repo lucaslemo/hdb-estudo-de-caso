@@ -15,14 +15,21 @@ app.config['DEBUG'] = os.getenv('FLASK_DEBUG', True)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'custom-secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 
-syslog_handler = SysLogHandler(address='/dev/log')
-syslog_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('[%(name)s]: [PID:%(process)d] [%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] [%(funcName)s] %(message)s')
-syslog_handler.setFormatter(formatter)
-
-app.logger.addHandler(syslog_handler)
-
 db = SQLAlchemy(app)
+
+if app.config['ENV'] == 'testing':
+    syslog_handler = SysLogHandler(address='/dev/log')
+    syslog_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(name)s]: [PID:%(process)d] [%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] [%(funcName)s] %(message)s')
+    syslog_handler.setFormatter(formatter)
+    app.logger.addHandler(syslog_handler)
+else:
+    console_handler = logging.StreamHandler()
+    app.logger.addHandler(console_handler)
+
+
+
+
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login' 
