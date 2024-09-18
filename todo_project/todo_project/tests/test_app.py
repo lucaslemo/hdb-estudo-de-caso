@@ -1,6 +1,6 @@
 import pytest
 import uuid
-from todo_project import app as create_app
+from todo_project import db, app as create_app
 
 @pytest.fixture()
 def app():
@@ -13,7 +13,10 @@ def app():
         "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory:',
     })
     with app.app_context():
+        db.create_all()
+        print(db.engine)
         yield app
+        db.drop_all()
 
 
 @pytest.fixture()
