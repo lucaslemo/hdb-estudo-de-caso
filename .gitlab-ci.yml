@@ -91,7 +91,7 @@ dynamic_job:
         -e DATABASE_URL="${DATABASE_URL}" \
         -e APP_PORT="${APP_PORT}" \
         --restart always \
-        $IMAGE_TAG \
+        "$IMAGE_TAG" \
         gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   #   - touch .env
   #   - echo "FLASK_ENV=$FLASK_ENV" >> .env
