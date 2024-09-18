@@ -4,6 +4,7 @@ variables:
   APPROVAL_PORT: 5000
   FLASK_ENV: production
   FLASK_DEBUG: False
+  NETWORK: todo_project
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
 stages:
@@ -86,10 +87,11 @@ dynamic_job:
   before_script:
     - docker run -d \
         --name "$CONTAINER_NAME" \
+        --network="$NETWORK"
         -v /dev/log:/dev/log \
-        -e SECRET_KEY="${SECRET_KEY}" \
-        -e DATABASE_URL="${DATABASE_URL}" \
-        -e APP_PORT="${APP_PORT}" \
+        -e SECRET_KEY="$SECRET_KEY" \
+        -e DATABASE_URL="$DATABASE_URL" \
+        -e APP_PORT="$APP_PORT" \
         --restart always \
         "$IMAGE_TAG" \
         gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
@@ -106,7 +108,7 @@ dynamic_job:
   #   - docker compose up -d
   script:
     - docker run \
-      --network="todo_project" \
+      --network="$NETWORK" \
       -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
       -t "http://$CONTAINER_NAME:$APPROVAL_PORT" \
       -j flask_zap_report.json
