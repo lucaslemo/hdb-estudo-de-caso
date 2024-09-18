@@ -46,6 +46,7 @@ test_job:
     - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
   script:
+    - pwd
     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
 deploy_job:
