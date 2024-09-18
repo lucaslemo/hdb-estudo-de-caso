@@ -81,7 +81,7 @@ dynamic_job:
   image: docker:27.2.1
   services:
     - docker:27.2.1-dind
-  variable:
+  variables:
     - CONTAINER_NAME: approval_host
   before_script:
     - docker run -d \
