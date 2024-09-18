@@ -70,7 +70,7 @@ dependency_job:
     - docker:27.2.1-dind
   stage: dependency_scan
   script:
-    - dependency-check --project "todo_project" --scan requirements.txt --enableExperimental
+    - dependency-check --project "Meu Projeto Java" --scan ./pom.xml --out ./report --format HTML --enableExperimental
 
 # dynamic_job:
 #   stage: dynamic_scan
