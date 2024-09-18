@@ -95,7 +95,6 @@ dynamic_job:
    - docker container stop $CONTAINER_NAME
    - docker container rm $CONTAINER_NAME
 
-
 # deploy_job:
 #   stage: deploy
 #   image: docker:27.2.1

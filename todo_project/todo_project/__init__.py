@@ -16,6 +16,7 @@ app.config['DEBUG'] = os.getenv('FLASK_DEBUG', True)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'custom-secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 app.config['WTF_CSRF_ENABLED'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 db = SQLAlchemy(app)
 
@@ -35,6 +36,14 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'danger'
 
 bcrypt = Bcrypt(app)
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Frame-Options"] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "default-src 'self';"
+    response.headers['Permissions-Policy'] = "geolocation=(self), microphone=()"
+    return response
 
 # Always put Routes at end
 from todo_project import routes
