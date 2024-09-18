@@ -86,10 +86,10 @@ dynamic_job:
   before_script:
     - docker run -d \
         --name "$CONTAINER_NAME" \
-        -p "$APPROVAL_PORT:$APPROVAL_PORT" \
         -v /dev/log:/dev/log \
         -e SECRET_KEY=${SECRET_KEY} \
         -e DATABASE_URL=${DATABASE_URL} \
+        -e APP_PORT=${APPROVAL_PORT} \
         --restart always \
         $IMAGE_TAG \
         gunicorn --bind "$APP_HOST:$APPROVAL_PORT" todo_project:app
@@ -110,13 +110,14 @@ dynamic_job:
       -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
       -t "http://$CONTAINER_NAME:$APPROVAL_PORT" \
       -j flask_zap_report.json
-  after_script:
-   - docker compose stop "$CONTAINER_NAME"
-   - docker compose rm "$CONTAINER_NAME"
   artifacts:
     paths:
       - flask_zap_report.json
     expire_in: 1 week
+  after_script:
+   - docker compose stop "$CONTAINER_NAME"
+   - docker compose rm "$CONTAINER_NAME"
+
 
 # deploy_job:
 #   stage: deploy
