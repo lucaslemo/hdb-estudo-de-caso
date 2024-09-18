@@ -78,7 +78,7 @@ stages:
 
 dynamic_job:
   stage: dynamic_scan
-  image: ghcr.io/zaproxy/zaproxy:bare
+  image: docker:27.2.1
   services:
     - docker:27.2.1-dind
   # before_script:
@@ -94,7 +94,7 @@ dynamic_job:
   #   - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   #   - docker compose up -d
   script:
-    - zap-baseline.py -t "http://localhost:$APP_PORT"
+    - docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "http://localhost:$APP_PORT"
   # after_script:
   #  - docker compose down
 
