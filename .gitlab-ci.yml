@@ -35,6 +35,8 @@ trivy_job:
 test_job:
   stage: app_test
   image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
   script:
     - ls -la
     - touch .env
