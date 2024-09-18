@@ -25,10 +25,12 @@ if app.config['ENV'] == 'testing':
     app.logger.addHandler(syslog_handler)
 else:
     console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
     app.logger.addHandler(console_handler)
 
 
-
+print(app.config['ENV'])
+app.logger.info(f'Teste log')
 
 
 login_manager = LoginManager(app)
