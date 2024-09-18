@@ -85,16 +85,7 @@ dynamic_job:
   variables:
     CONTAINER_NAME: approval_host
   before_script:
-    - docker run -d \
-        --name "$CONTAINER_NAME" \
-        --network="$NETWORK"
-        -v /dev/log:/dev/log \
-        -e SECRET_KEY="$SECRET_KEY" \
-        -e DATABASE_URL="$DATABASE_URL" \
-        -e APP_PORT="$APP_PORT" \
-        --restart always \
-        "$IMAGE_TAG" \
-        gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   #   - touch .env
   #   - echo "FLASK_ENV=$FLASK_ENV" >> .env
   #   - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
