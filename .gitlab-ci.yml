@@ -1,6 +1,7 @@
 variables:
   APP_HOST: 0.0.0.0
   APP_PORT: 8888
+  APPROVAL_PORT: 5000
   FLASK_ENV: production
   FLASK_DEBUG: False
   IMAGE_TAG: lucaslemo/flask:1.0.0
@@ -8,9 +9,10 @@ variables:
 stages:
   - build
   # - image_scan
-  # - static_scan
   # - app_test
-  - dynamic_scan
+  # - static_scan
+  - dependency_scan
+  # - dynamic_scan
   - deploy
   - cleanup
 
@@ -33,16 +35,6 @@ build_job:
 #   script:
 #     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
 
-# bandit_job:
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   stage: static_scan
-#   script:
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir bandit
-#     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
-
 # test_job:
 #   stage: app_test
 #   image: python:3.10.15-slim
@@ -62,25 +54,49 @@ build_job:
 #   script:
 #     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
-build_job:
-  stage: dynamic_scan
-  image: owasp/zap2docker-stable
+# bandit_job:
+#   image: python:3.10.15-slim
+#   services:
+#     - docker:27.2.1-dind
+#   stage: static_scan
+#   script:
+#     - pip install --no-cache-dir --upgrade pip
+#     - pip install --no-cache-dir bandit
+#     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
+
+dependency_job:
+  image: owasp/dependency-check:latest
   services:
     - docker:27.2.1-dind
-  before_script:
-    - touch .env
-    - echo "FLASK_ENV=$FLASK_ENV" >> .env
-    - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
-    - echo "SECRET_KEY=$SECRET_KEY" >> .env
-    - echo "DATABASE_URL=$DATABASE_URL" >> .env
-    - echo "APP_PORT=$APP_PORT" >> .env
-    - echo "APP_HOST=$APP_HOST" >> .env
-    - docker compose down
-    - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
-    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
-    - docker compose up -d; sleep 5
+  stage: dependency_scan
   script:
-    - zap-baseline.py -t http://flask:$APP_PORT
+    - dependency-check --project "todo_project" --scan requirements.txt
+
+# dynamic_job:
+#   stage: dynamic_scan
+#   image: $IMAGE_TAG
+#   variables:
+#     - PID: "pid=`ps ax | grep gunicorn | grep $APPROVAL_PORT | awk '{split($0,a," "); print a[1]}' | head -n 1`"
+#   services:
+#     - docker:27.2.1-dind
+#   before_script:
+#     - touch .env
+#     - echo "FLASK_ENV=$FLASK_ENV" >> .env
+#     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+#     - echo "SECRET_KEY=$SECRET_KEY" >> .env
+#     - echo "DATABASE_URL=$DATABASE_URL" >> .env
+#     - echo "APP_PORT=$APPROVAL_PORT" >> .env
+#     - echo "APP_HOST=$APP_HOST" >> .env
+#     - gunicorn --bind "$APP_HOST:$APPROVAL_PORT" todo_project:app
+#   script:
+#     - zap-baseline.py -t http://flask:$APP_PORT
+#   after_script:
+#    - if [ -z "$PID" ]; then
+#       echo "no gunicorn deamon on port $APPROVAL_PORT"
+#     else
+#       kill $PID
+#       echo "killed gunicorn deamon on port $APPROVAL_PORT"
+#     fi
 
 deploy_job:
   stage: deploy
