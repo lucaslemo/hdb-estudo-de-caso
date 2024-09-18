@@ -10,7 +10,7 @@ def app():
         "ENV": 'development',
         "DEBUG": True,
         "SECRET_KEY": uuid.uuid4().hex,
-        "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory:',
+        "SQLALCHEMY_DATABASE_URI": 'sqlite:///todo_project/todo_project/tests/site.db',
     })
     with app.app_context():
         print(db)
