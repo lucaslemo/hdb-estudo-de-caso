@@ -12,7 +12,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['ENV'] = os.getenv('FLASK_ENV', 'development')
 app.config['DEBUG'] = os.getenv('FLASK_DEBUG', True)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'custom-secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 
 syslog_handler = SysLogHandler(address='/dev/log')

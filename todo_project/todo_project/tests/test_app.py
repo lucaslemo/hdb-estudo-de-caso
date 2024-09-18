@@ -5,13 +5,9 @@ from todo_project import db, app as create_app
 @pytest.fixture()
 def app():
     app = create_app
-    # app.config.update({
-    #     "TESTING": True,
-    #     "ENV": 'development',
-    #     "DEBUG": True,
-    #     "SECRET_KEY": uuid.uuid4().hex,
-    #     "SQLALCHEMY_DATABASE_URI": 'sqlite:///todo_project/todo_project/tests/site.db',
-    # })
+    app.config.update({
+        "TESTING": True,
+    })
     with app.app_context():
         print(app.config)
         print(db)

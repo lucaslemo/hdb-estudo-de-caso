@@ -40,10 +40,9 @@ test_job:
   before_script:
     - rm -rf .pytest_cache
     - rm -rf .cache/pip
-    - export FLASK_ENV="testing"
     - export DATABASE_URL="$DATABASE_TEST_URL"
-    - touch .env
-    - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
+    # - touch .env
+    # - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
