@@ -99,7 +99,7 @@ dynamic_job:
   #   - docker compose up -d
   script:
     - docker run \
-      --network="$NETWORK" \
+      --network $NETWORK \
       -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
       -t "http://$CONTAINER_NAME:$APPROVAL_PORT" \
       -j flask_zap_report.json
@@ -108,8 +108,8 @@ dynamic_job:
       - flask_zap_report.json
     expire_in: 1 week
   after_script:
-   - docker compose stop "$CONTAINER_NAME"
-   - docker compose rm "$CONTAINER_NAME"
+   - docker container stop $CONTAINER_NAME
+   - docker container rm $CONTAINER_NAME
 
 
 # deploy_job:
