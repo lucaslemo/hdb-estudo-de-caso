@@ -4,7 +4,7 @@ variables:
   FLASK_ENV: production
   FLASK_DEBUG: False
   IMAGE_TAG: lucaslemo/flask:1.0.0
-  DATABASE_TEST_URL: sqlite:///todo_project/todo_project/tests/test.db
+  DATABASE_TEST_URL: sqlite:///os.path.join(app.instance_path, 'todo_project/todo_project/tests/test.db')
 
 stages:
   - build
@@ -41,8 +41,6 @@ test_job:
     - rm -rf .pytest_cache
     - rm -rf .cache/pip
     - export DATABASE_URL="$DATABASE_TEST_URL"
-    # - touch .env
-    # - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
