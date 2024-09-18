@@ -55,6 +55,7 @@ deploy_job:
   services:
     - docker:27.2.1-dind
   before_script:
+    - ls -la
     - touch .env
     - echo "FLASK_ENV=$FLASK_ENV" >> .env
     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
@@ -62,6 +63,8 @@ deploy_job:
     - echo "DATABASE_URL=$DATABASE_URL" >> .env
     - echo "APP_PORT=$APP_PORT" >> .env
     - echo "APP_HOST=$APP_HOST" >> .env
+    - ls -la
+    - cat .env
     - docker compose down
     - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
