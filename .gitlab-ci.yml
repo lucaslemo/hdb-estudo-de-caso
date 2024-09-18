@@ -83,7 +83,7 @@ dynamic_job:
     - docker:27.2.1-dind
   variables:
     CONTAINER_NAME: approval_host
-  before_script:https://gitlab.com/gitlab-org/gitlab/-/issues
+  before_script:
     - docker run -d \
         --name "$CONTAINER_NAME" \
         -p "$APPROVAL_PORT:$APPROVAL_PORT" \
