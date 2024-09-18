@@ -80,6 +80,7 @@ dynamic_job:
   stage: dynamic_scan
   image: zaproxy/zap-stable
   services:
+    - ghcr.io/zaproxy/zaproxy:stable
     - docker:27.2.1-dind
   before_script:
     - touch .env
