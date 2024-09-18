@@ -82,8 +82,8 @@ dynamic_job:
   services:
     - docker:27.2.1-dind
   variables:
-    - CONTAINER_NAME: approval_host
-  before_script:
+    CONTAINER_NAME: approval_host
+  before_script:https://gitlab.com/gitlab-org/gitlab/-/issues
     - docker run -d \
         --name "$CONTAINER_NAME" \
         -p "$APPROVAL_PORT:$APPROVAL_PORT" \
@@ -109,9 +109,14 @@ dynamic_job:
       --network="todo_project" \
       -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
       -t "http://$CONTAINER_NAME:$APPROVAL_PORT" \
-      -j flask_report.json
-  # after_script:
-  #  - docker compose down
+      -j flask_zap_report.json
+  after_script:
+   - docker compose stop "$CONTAINER_NAME"
+   - docker compose rm "$CONTAINER_NAME"
+  artifacts:
+    paths:
+      - flask_zap_report.json
+    expire_in: 1 week
 
 # deploy_job:
 #   stage: deploy
