@@ -34,8 +34,9 @@ trivy_job:
 
 test_job:
   stage: app_test
+  image: python:3.10.15-slim
   services:
-    - python:3.10.15-slim
+    - docker:27.2.1-dind
   script:
     - touch .env
     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
