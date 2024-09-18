@@ -13,7 +13,8 @@ load_dotenv(dotenv_path=env_file, override=True)
 app = Flask(__name__)
 app.config['ENV'] = os.getenv('FLASK_ENV', 'development')
 app.config['DEBUG'] = os.getenv('FLASK_DEBUG', True)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'custom-secret_key')
+# app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'custom-secret_key')
+app.config['SECRET_KEY'] = '3a318cf0a511464396dfcd2b7e9df9a2'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 app.config['WTF_CSRF_ENABLED'] = True
 
