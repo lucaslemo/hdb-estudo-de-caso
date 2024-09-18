@@ -57,18 +57,18 @@ def test_login(client):
     assert response.request.path == '/login'
 
 
-# def test_register_success(client):
-#     response = client.post(
-#         '/register', 
-#         data={
-#             'username': 'user',
-#             'password': 'password',
-#             'confirm_password': 'password',
-#         },
-#         follow_redirects=True
-#     )
-#     assert response.status_code == 200
-#     assert response.request.path == '/login'
+def test_register_success(client):
+    response = client.post(
+        '/register', 
+        data={
+            'username': 'user',
+            'password': 'password',
+            'confirm_password': 'password',
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert response.request.path == '/login'
 
 
 # def test_register_failure(client):
