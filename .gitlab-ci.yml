@@ -94,7 +94,7 @@ dynamic_job:
   #   - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   #   - docker compose up -d
   script:
-    - docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "http://flask:$APP_PORT"
+    - docker run --network="todo_project" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "http://flask:$APP_PORT"
   # after_script:
   #  - docker compose down
 
