@@ -13,6 +13,7 @@ def app():
         "SQLALCHEMY_DATABASE_URI": 'sqlite:///todo_project/todo_project/tests/site.db',
     })
     with app.app_context():
+        print(app.config)
         print(db)
         yield app
 
