@@ -37,13 +37,18 @@ test_job:
   image: python:3.10.15-slim
   services:
     - docker:27.2.1-dind
-  script:
+  before_script:
+    - rm -rf .pytest_cache
+    - rm -rf .cache/pip
+    - export FLASK_ENV="testing"
+    - export DATABASE_URL="$DATABASE_TEST_URL"
     - touch .env
     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
+  script:
     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
 deploy_job:
