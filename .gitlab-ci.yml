@@ -87,12 +87,12 @@ dynamic_job:
     - docker run -d \
         --name "$CONTAINER_NAME" \
         -v /dev/log:/dev/log \
-        -e SECRET_KEY=${SECRET_KEY} \
-        -e DATABASE_URL=${DATABASE_URL} \
-        -e APP_PORT=${APPROVAL_PORT} \
+        -e SECRET_KEY="${SECRET_KEY}" \
+        -e DATABASE_URL="${DATABASE_URL}" \
+        -e APP_PORT="${APP_PORT}" \
         --restart always \
         $IMAGE_TAG \
-        gunicorn --bind "$APP_HOST:$APPROVAL_PORT" todo_project:app
+        gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   #   - touch .env
   #   - echo "FLASK_ENV=$FLASK_ENV" >> .env
   #   - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
