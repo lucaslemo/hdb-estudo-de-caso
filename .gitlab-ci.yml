@@ -86,7 +86,7 @@ dynamic_job:
   before_script:
     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   script:
-    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "http://$CONTAINER_NAME:$APP_PORT" -j flask_zap_report.json
+    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j flask_zap_report.json
   artifacts:
     paths:
       - flask_zap_report.json
