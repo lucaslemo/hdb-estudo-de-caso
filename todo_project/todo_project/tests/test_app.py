@@ -9,8 +9,7 @@ def app():
         "TESTING": True,
     })
     with app.app_context():
-        print(app.config)
-        print(db)
+
         yield app
 
 
