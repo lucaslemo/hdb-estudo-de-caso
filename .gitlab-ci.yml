@@ -4,7 +4,8 @@ variables:
   FLASK_ENV: production
   FLASK_DEBUG: False
   IMAGE_TAG: lucaslemo/flask:1.0.0
-  DATABASE_TEST_URL: sqlite:////builds/root/todo_list/todo_project/todo_project/tests/test.db
+  # DATABASE_TEST_URL: sqlite:////builds/root/todo_list/todo_project/todo_project/tests/test.db
+  DATABASE_TEST_URL: 'sqlite:///:memory:'
 
 stages:
   - build
@@ -45,6 +46,7 @@ test_job:
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
+    - mkdir -p /dev/log && touch syslog
   script:
     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 

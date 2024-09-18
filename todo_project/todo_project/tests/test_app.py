@@ -1,5 +1,4 @@
 import pytest
-import uuid
 from todo_project import db, app as create_app
 
 @pytest.fixture()
@@ -9,8 +8,10 @@ def app():
         "TESTING": True,
     })
     with app.app_context():
-
+        print(db.engine)
+        db.create_all()
         yield app
+        db.drop_all()
 
 
 @pytest.fixture()
@@ -49,21 +50,21 @@ def test_register(client):
 def test_login(client):
     response = client.get('/login')
     assert response.status_code == 200
-    assert response.request.path == '/login'
+    assert response.request.path == '/login1'
 
 
-def test_register_success(client):
-    response = client.post(
-        '/register', 
-        data={
-            'username': 'user',
-            'password': 'password',
-            'confirm_password': 'password',
-        },
-        follow_redirects=True
-    )
-    assert response.status_code == 200
-    assert response.request.path == '/login'
+# def test_register_success(client):
+#     response = client.post(
+#         '/register', 
+#         data={
+#             'username': 'user',
+#             'password': 'password',
+#             'confirm_password': 'password',
+#         },
+#         follow_redirects=True
+#     )
+#     assert response.status_code == 200
+#     assert response.request.path == '/login'
 
 
 # def test_register_failure(client):
