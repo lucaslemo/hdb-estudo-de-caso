@@ -7,22 +7,22 @@ variables:
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
 stages:
-  - build
+  # - build
   # - image_scan
   # - app_test
   # - static_scan
   - dependency_scan
   # - dynamic_scan
-  - deploy
-  - cleanup
+  # - deploy
+  # - cleanup
 
-build_job:
-  stage: build
-  image: docker:27.2.1
-  services:
-    - docker:27.2.1-dind
-  script:
-    - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
+# build_job:
+#   stage: build
+#   image: docker:27.2.1
+#   services:
+#     - docker:27.2.1-dind
+#   script:
+#     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
 # trivy_job:
 #   stage: image_scan
@@ -70,7 +70,7 @@ dependency_job:
     - docker:27.2.1-dind
   stage: dependency_scan
   script:
-    - dependency-check --project "todo_project" --scan requirements.txt
+    - dependency-check --project "todo_project" --scan requirements.txt --enableExperimental
 
 # dynamic_job:
 #   stage: dynamic_scan
@@ -98,27 +98,27 @@ dependency_job:
 #       echo "killed gunicorn deamon on port $APPROVAL_PORT"
 #     fi
 
-deploy_job:
-  stage: deploy
-  image: docker:27.2.1
-  services:
-    - docker:27.2.1-dind
-  before_script:
-    - touch .env
-    - echo "FLASK_ENV=$FLASK_ENV" >> .env
-    - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
-    - echo "SECRET_KEY=$SECRET_KEY" >> .env
-    - echo "DATABASE_URL=$DATABASE_URL" >> .env
-    - echo "APP_PORT=$APP_PORT" >> .env
-    - echo "APP_HOST=$APP_HOST" >> .env
-    - docker compose down
-    - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
-    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
-  script:
-    - docker compose up -d
+# deploy_job:
+#   stage: deploy
+#   image: docker:27.2.1
+#   services:
+#     - docker:27.2.1-dind
+#   before_script:
+#     - touch .env
+#     - echo "FLASK_ENV=$FLASK_ENV" >> .env
+#     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+#     - echo "SECRET_KEY=$SECRET_KEY" >> .env
+#     - echo "DATABASE_URL=$DATABASE_URL" >> .env
+#     - echo "APP_PORT=$APP_PORT" >> .env
+#     - echo "APP_HOST=$APP_HOST" >> .env
+#     - docker compose down
+#     - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
+#     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
+#   script:
+#     - docker compose up -d
 
-cleanup_job:
-  stage: cleanup
-  script:
-    - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
-  when: always
+# cleanup_job:
+#   stage: cleanup
+#   script:
+#     - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
+#   when: always
