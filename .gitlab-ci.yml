@@ -36,7 +36,7 @@ run_tests:
   script:
     - ls -la
     - touch .env
-    - echo "DATABASE_URL=sqlite:///:memory:" >> .env
+    - echo "DATABASE_URL=todo_project/todo_project/tests/test.db" >> .env
     - ls -la
     - cat .env
     - pip install --no-cache-dir --upgrade pip
