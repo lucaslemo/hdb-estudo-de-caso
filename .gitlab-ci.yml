@@ -37,12 +37,13 @@ test_job:
   services:
     - python:3.10.15-slim
   script:
+    - touch .env
     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
-    - pytest todo_project/todo_project/tests/test_app.py
+    - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
 deploy_job:
   stage: deploy
