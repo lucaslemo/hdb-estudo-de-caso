@@ -12,7 +12,6 @@ services:
     volumes:
       - /usr/hdb/db:/usr/hdb/db:rw
       - /dev/log:/dev/log:rw
-      - ./todo_project:/var/www/app
     environment:
       FLASK_ENV: ${FLASK_ENV}
       FLASK_DEBUG: ${FLASK_DEBUG}

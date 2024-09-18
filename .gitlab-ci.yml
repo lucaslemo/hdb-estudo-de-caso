@@ -44,10 +44,6 @@ run_tests:
     - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
     - pytest todo_project/todo_project/tests/test_app.py --junitxml=report_test.xml
-  artifacts:
-    when: always
-    paths:
-      - report_test.xml
 
 deploy_job:
   stage: deploy
