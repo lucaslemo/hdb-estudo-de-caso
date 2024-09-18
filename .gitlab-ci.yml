@@ -11,8 +11,8 @@ stages:
   # - image_scan
   # - app_test
   # - static_scan
-  - dependency_scan
-  # - dynamic_scan
+  # - dependency_scan
+  - dynamic_scan
   # - deploy
   # - cleanup
 
@@ -65,42 +65,38 @@ stages:
 #   script:
 #     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
 
-dependency_job:
-  image: python:3.10.15-slim
-  services:
-    - docker:27.2.1-dind
-  stage: dependency_scan
-  before_script:
-    - pip install --no-cache-dir --upgrade pip
-    - pip install --no-cache-dir safety
-  script:
-    - safety check -r requirements.txt
-
-# dynamic_job:
-#   stage: dynamic_scan
-#   image: $IMAGE_TAG
-#   variables:
-#     - PID: "pid=`ps ax | grep gunicorn | grep $APPROVAL_PORT | awk '{split($0,a," "); print a[1]}' | head -n 1`"
+# dependency_job:
+#   image: python:3.10.15-slim
 #   services:
 #     - docker:27.2.1-dind
+#   stage: dependency_scan
 #   before_script:
-#     - touch .env
-#     - echo "FLASK_ENV=$FLASK_ENV" >> .env
-#     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
-#     - echo "SECRET_KEY=$SECRET_KEY" >> .env
-#     - echo "DATABASE_URL=$DATABASE_URL" >> .env
-#     - echo "APP_PORT=$APPROVAL_PORT" >> .env
-#     - echo "APP_HOST=$APP_HOST" >> .env
-#     - gunicorn --bind "$APP_HOST:$APPROVAL_PORT" todo_project:app
+#     - pip install --no-cache-dir --upgrade pip
+#     - pip install --no-cache-dir safety
 #   script:
-#     - zap-baseline.py -t http://flask:$APP_PORT
-#   after_script:
-#    - if [ -z "$PID" ]; then
-#       echo "no gunicorn deamon on port $APPROVAL_PORT"
-#     else
-#       kill $PID
-#       echo "killed gunicorn deamon on port $APPROVAL_PORT"
-#     fi
+#     - safety check -r requirements.txt
+
+dynamic_job:
+  stage: dynamic_scan
+  image: zaproxy/zap-stable
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - touch .env
+    - echo "FLASK_ENV=$FLASK_ENV" >> .env
+    - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+    - echo "SECRET_KEY=$SECRET_KEY" >> .env
+    - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    - echo "APP_PORT=$APPROVAL_PORT" >> .env
+    - echo "APP_HOST=$APP_HOST" >> .env
+    - docker compose down
+    - PORT_CONTAINERS=$(docker ps --filter "publish=$APPROVAL_PORT" -q)
+    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
+    - docker compose up -d
+  script:
+    - zap-baseline.py -t http://flask:$APPROVAL_PORT
+  after_script:
+   - docker compose down
 
 # deploy_job:
 #   stage: deploy
