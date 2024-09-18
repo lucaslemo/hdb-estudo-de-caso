@@ -34,8 +34,11 @@ run_tests:
   stage: app_test
   image: python:3.10.15-slim
   script:
+    - ls -la
     - touch .env
     - echo "DATABASE_URL=sqlite:///:memory:" >> .env
+    - ls -la
+    - cat .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
