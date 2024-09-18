@@ -59,18 +59,22 @@ stages:
 #   services:
 #     - docker:27.2.1-dind
 #   stage: static_scan
-#   script:
+#   before_script:
 #     - pip install --no-cache-dir --upgrade pip
 #     - pip install --no-cache-dir bandit
+#   script:
 #     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
 
 dependency_job:
-  image: owasp/dependency-check:latest
+  image: python:3.10.15-slim
   services:
     - docker:27.2.1-dind
   stage: dependency_scan
+  before_script:
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir safety
   script:
-    - dependency-check --project "Meu Projeto Java" --scan ./pom.xml --out ./report --format HTML --enableExperimental
+    - safety check -r requirements.txt
 
 # dynamic_job:
 #   stage: dynamic_scan
