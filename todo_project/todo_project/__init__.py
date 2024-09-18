@@ -23,7 +23,6 @@ syslog_handler.setFormatter(formatter)
 app.logger.addHandler(syslog_handler)
 
 db = SQLAlchemy(app)
-db.
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login' 
