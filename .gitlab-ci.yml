@@ -81,7 +81,18 @@ dynamic_job:
   image: docker:27.2.1
   services:
     - docker:27.2.1-dind
-  # before_script:
+  variable:
+    - CONTAINER_NAME: approval_host
+  before_script:
+    - docker run -d \
+        --name "$CONTAINER_NAME" \
+        -p "$APPROVAL_PORT:$APPROVAL_PORT" \
+        -v /dev/log:/dev/log \
+        -e SECRET_KEY=${SECRET_KEY} \
+        -e DATABASE_URL=${DATABASE_URL} \
+        --restart always \
+        $IMAGE_TAG \
+        gunicorn --bind "$APP_HOST:$APPROVAL_PORT" todo_project:app
   #   - touch .env
   #   - echo "FLASK_ENV=$FLASK_ENV" >> .env
   #   - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
@@ -94,7 +105,11 @@ dynamic_job:
   #   - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   #   - docker compose up -d
   script:
-    - docker run --network="todo_project" -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t "http://flask:$APP_PORT"
+    - docker run \
+      --network="todo_project" \
+      -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+      -t "http://$CONTAINER_NAME:$APPROVAL_PORT" \
+      -j flask_report.json
   # after_script:
   #  - docker compose down
 
