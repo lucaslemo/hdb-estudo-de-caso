@@ -49,9 +49,11 @@ def login():
             app.logger.info(f'Sucesso no login para o usuário: {form.username.data}')
             return redirect(url_for('all_tasks'))
         else:
-            app.logger.warning(f'Falha na tentativa de login para o usuário: {form.username.data}')
+            app.logger.warning(f'Falha na tentativa de login para o usuário: {form.username.data}. Erro: Credenciais não correspondem')
             flash('Login Unsuccessful. Please check Username Or Password', 'danger')
-    
+    elif request.method == 'POST':
+        app.logger.warning(f'Falha na tentativa de login para o usuário: {form.username.data}. Erro: {form.errors}')
+
     return render_template('login.html', title='Login', form=form)
     
 
@@ -77,7 +79,7 @@ def register():
         return redirect(url_for('login'))
     
     elif request.method == 'POST':
-        app.logger.warning(f'Falha na tentativa de cadastro do usuário: {form.username.data}')
+        app.logger.warning(f'Falha na tentativa de cadastro do usuário: {form.username.data}. Erro: {form.errors}')
 
     return render_template('register.html', title='Register', form=form)
 
@@ -103,7 +105,7 @@ def add_task():
         return redirect(url_for('add_task'))
     
     elif request.method == 'POST':
-        app.logger.warning(f'Falha na criação da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
+        app.logger.warning(f'Falha na criação da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}. Erro: {form.errors}')
 
     return render_template('add_task.html', form=form, title='Add Task')
 
@@ -125,7 +127,7 @@ def update_task(task_id):
             return redirect(url_for('all_tasks'))
         
     elif request.method == 'POST':
-        app.logger.warning(f'Falha na atualização da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}')
+        app.logger.warning(f'Falha na atualização da tarefa: {form.task_name.data}, pelo usuário: {current_user.username}. Erro: {form.errors}')
 
     elif request.method == 'GET':
         form.task_name.data = task.content
@@ -159,7 +161,7 @@ def account():
             return redirect(url_for('account'))
         
     elif request.method == 'POST':
-        app.logger.warning(f'Falha na atualização do usuário: {current_user.username} para: {form.username.data}')
+        app.logger.warning(f'Falha na atualização do usuário: {current_user.username} para: {form.username.data}. Erro: {form.errors}')
 
     elif request.method == 'GET':
         form.username.data = current_user.username
@@ -179,6 +181,8 @@ def change_password():
             redirect(url_for('account'))
         else:
             flash('Please Enter Correct Password', 'danger')
-            app.logger.warning(f'Falha na atualização da senha do usuário: {current_user.username}')
+            app.logger.warning(f'Falha na atualização da senha do usuário: {current_user.username}. Erro: Senha antiga incorreta')
+    elif request.method == 'POST':
+            app.logger.warning(f'Falha na atualização da senha do usuário: {current_user.username}. Erro: {form.errors}')
     return render_template('change_password.html', title='Change Password', form=form)
 

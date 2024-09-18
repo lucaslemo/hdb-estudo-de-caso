@@ -6,6 +6,7 @@ def app():
     app = create_app
     app.config.update({
         "TESTING": True,
+        "WTF_CSRF_ENABLED": False
     })
     with app.app_context():
         db.create_all()
@@ -62,30 +63,53 @@ def test_register_success(client):
         },
         follow_redirects=True
     )
+    print(response.data)
     assert response.status_code == 200
     assert response.request.path == '/login'
 
 
-# def test_register_failure(client):
-#     response = client.post(
-#         '/register', 
-#         data={
-#             'username': 'user',
-#             'password': 'other_password',
-#             'confirm_password': 'other_password',
-#         },
-#         follow_redirects=True
-#     )
-#     assert response.status_code == 200
+def test_register_failure(client):
+    client.post(
+        '/register', 
+        data={
+            'username': 'user',
+            'password': 'password',
+            'confirm_password': 'password',
+        },
+        follow_redirects=True
+    )
+
+    response = client.post(
+        '/register', 
+        data={
+            'username': 'user',
+            'password': 'other_password',
+            'confirm_password': 'other_password',
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert response.request.path == '/register'
 
 
-# def test_login_success(client):
-#     response = client.post(
-#         '/login', 
-#         data={
-#             'username': 'user',
-#             'password': 'password',
-#         },
-#         follow_redirects=True
-#     )
-#     assert response.status_code == 200
+def test_login_success(client):
+    client.post(
+        '/register', 
+        data={
+            'username': 'user',
+            'password': 'password',
+            'confirm_password': 'password',
+        },
+        follow_redirects=True
+    )
+
+    response = client.post(
+        '/login', 
+        data={
+            'username': 'user',
+            'password': 'password',
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert response.request.path == '/all_tasks'
