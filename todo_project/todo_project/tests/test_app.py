@@ -92,7 +92,20 @@ def test_register_failure(client):
     assert response.request.path == '/register'
 
 
-def test_login_success(client):
+def test_login_failure(client):
+    response = client.post(
+        '/login', 
+        data={
+            'username': 'user',
+            'password': 'password',
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert response.request.path == '/login'
+
+
+def test_login_success_and_view_tasks(client):
     client.post(
         '/register', 
         data={
@@ -113,3 +126,34 @@ def test_login_success(client):
     )
     assert response.status_code == 200
     assert response.request.path == '/all_tasks'
+
+
+def test_register_login_create_task(client):
+    client.post(
+        '/register', 
+        data={
+            'username': 'user',
+            'password': 'password',
+            'confirm_password': 'password',
+        },
+        follow_redirects=True
+    )
+
+    client.post(
+        '/login', 
+        data={
+            'username': 'user',
+            'password': 'password',
+        },
+        follow_redirects=True
+    )
+
+    response = client.post(
+        '/add_task', 
+        data={
+            'task_name': 'buy_food',
+        },
+        follow_redirects=True
+    )
+    assert response.status_code == 200
+    assert b"Task Created" in response.data
