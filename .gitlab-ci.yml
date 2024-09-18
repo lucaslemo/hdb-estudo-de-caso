@@ -4,12 +4,14 @@ variables:
   FLASK_ENV: production
   FLASK_DEBUG: False
   IMAGE_TAG: lucaslemo/flask:1.0.0
+  DATABASE_TEST_URL: sqlite:///todo_project/todo_project/tests/test.db
 
 stages:
   - build
   - image_scan
   - app_test
   - deploy
+  - cleanup
 
 build_job:
   stage: build
@@ -19,7 +21,7 @@ build_job:
   script:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
-security_scan:
+trivy_job:
   stage: image_scan
   image: docker:27.2.1
   services:
@@ -30,15 +32,15 @@ security_scan:
   script:
     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
 
-run_tests:
+test_job:
   stage: app_test
   image: python:3.10.15-slim
   script:
-    # - ls -la
-    # - touch .env
-    # - echo "DATABASE_URL=sqlite:///todo_project/todo_project/tests/test.db" >> .env
-    # - ls -la
-    # - cat .env
+    - ls -la
+    - touch .env
+    - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
+    - ls -la
+    - cat .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
@@ -66,3 +68,9 @@ deploy_job:
     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   script:
     - docker compose up -d
+
+cleanup_job:
+  stage: cleanup
+  script:
+    - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
+  when: always
