@@ -6,6 +6,7 @@ variables:
   NETWORK: todo_project
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
+
 stages:
   - build
   - image_scan
