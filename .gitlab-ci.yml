@@ -7,74 +7,74 @@ variables:
   IMAGE_TAG: lucaslemo/flask:1.0.0
 
 stages:
-  # - build
-  # - image_scan
-  # - app_test
-  # - static_scan
-  # - dependency_scan
+  - build
+  - image_scan
+  - app_test
+  - static_scan
+  - dependency_scan
   - dynamic_scan
-  # - deploy
-  # - cleanup
+  - deploy
+  - cleanup
 
-# build_job:
-#   stage: build
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   script:
-#     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
+build_job:
+  stage: build
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  script:
+    - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
-# trivy_job:
-#   stage: image_scan
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   before_script:
-#     - apk add --no-cache curl
-#     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-#   script:
-#     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
+trivy_job:
+  stage: image_scan
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - apk add --no-cache curl
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+  script:
+    - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
 
-# test_job:
-#   stage: app_test
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   before_script:
-#     - rm -rf .pytest_cache
-#     - rm -rf .cache/pip
-#     - touch .env
-#     - echo "FLASK_ENV=testing" >> .env
-#     - echo "FLASK_DEBUG=True" >> .env
-#     - echo "DATABASE_URL=sqlite:///:memory:" >> .env
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir -r requirements.txt
-#     - pip install --no-cache-dir python-dotenv
-#     - pip install --no-cache-dir pytest
-#   script:
-#     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
+test_job:
+  stage: app_test
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - rm -rf .pytest_cache
+    - rm -rf .cache/pip
+    - touch .env
+    - echo "FLASK_ENV=testing" >> .env
+    - echo "FLASK_DEBUG=True" >> .env
+    - echo "DATABASE_URL=sqlite:///:memory:" >> .env
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir python-dotenv
+    - pip install --no-cache-dir pytest
+  script:
+    - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
-# bandit_job:
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   stage: static_scan
-#   before_script:
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir bandit
-#   script:
-#     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
+bandit_job:
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  stage: static_scan
+  before_script:
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir bandit
+  script:
+    - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
 
-# dependency_job:
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   stage: dependency_scan
-#   before_script:
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir safety
-#   script:
-#     - safety check -r requirements.txt
+dependency_job:
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  stage: dependency_scan
+  before_script:
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir safety
+  script:
+    - safety check -r requirements.txt
 
 dynamic_job:
   stage: dynamic_scan
@@ -86,36 +86,36 @@ dynamic_job:
   before_script:
     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   script:
-    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j flask_zap_report.json
+    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
   artifacts:
     paths:
-      - flask_zap_report.json
+      - /builds/root/todo_list/flask_zap_report.json
     expire_in: 1 week
   after_script:
    - docker container stop $CONTAINER_NAME
    - docker container rm $CONTAINER_NAME
 
-# deploy_job:
-#   stage: deploy
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   before_script:
-#     - touch .env
-#     - echo "FLASK_ENV=$FLASK_ENV" >> .env
-#     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
-#     - echo "SECRET_KEY=$SECRET_KEY" >> .env
-#     - echo "DATABASE_URL=$DATABASE_URL" >> .env
-#     - echo "APP_PORT=$APP_PORT" >> .env
-#     - echo "APP_HOST=$APP_HOST" >> .env
-#     - docker compose down
-#     - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
-#     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
-#   script:
-#     - docker compose up -d
+deploy_job:
+  stage: deploy
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - touch .env
+    - echo "FLASK_ENV=$FLASK_ENV" >> .env
+    - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+    - echo "SECRET_KEY=$SECRET_KEY" >> .env
+    - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    - echo "APP_PORT=$APP_PORT" >> .env
+    - echo "APP_HOST=$APP_HOST" >> .env
+    - docker compose down
+    - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
+    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
+  script:
+    - docker compose up -d
 
-# cleanup_job:
-#   stage: cleanup
-#   script:
-#     - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
-#   when: always
+cleanup_job:
+  stage: cleanup
+  script:
+    - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
+  when: always
