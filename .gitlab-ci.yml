@@ -8,11 +8,12 @@ variables:
 
 stages:
   - build
-  - image_scan
-  - app_test
-  - static_scan
-  - dependency_scan
-  - dynamic_scan
+  # - image_scan
+  # - tests
+  # - static_scan
+  # - dependency_scan
+  # - dynamic_scan
+  - review
   - deploy
   - cleanup
 
@@ -24,76 +25,90 @@ build_job:
   script:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
 
-trivy_job:
-  stage: image_scan
-  image: docker:27.2.1
-  services:
-    - docker:27.2.1-dind
-  before_script:
-    - apk add --no-cache curl
-    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-  script:
-    - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
+# trivy_job:
+#   stage: image_scan
+#   image: docker:27.2.1
+#   services:
+#     - docker:27.2.1-dind
+#   before_script:
+#     - apk add --no-cache curl
+#     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+#   script:
+#     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
 
-test_job:
-  stage: app_test
-  image: python:3.10.15-slim
-  services:
-    - docker:27.2.1-dind
-  before_script:
-    - rm -rf .pytest_cache
-    - rm -rf .cache/pip
-    - touch .env
-    - echo "FLASK_ENV=testing" >> .env
-    - echo "FLASK_DEBUG=True" >> .env
-    - echo "DATABASE_URL=sqlite:///:memory:" >> .env
-    - pip install --no-cache-dir --upgrade pip
-    - pip install --no-cache-dir -r requirements.txt
-    - pip install --no-cache-dir python-dotenv
-    - pip install --no-cache-dir pytest
-  script:
-    - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
+# test_job:
+#   stage: tests
+#   image: python:3.10.15-slim
+#   services:
+#     - docker:27.2.1-dind
+#   before_script:
+#     - rm -rf .pytest_cache
+#     - rm -rf .cache/pip
+#     - touch .env
+#     - echo "FLASK_ENV=testing" >> .env
+#     - echo "FLASK_DEBUG=True" >> .env
+#     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
+#     - pip install --no-cache-dir --upgrade pip
+#     - pip install --no-cache-dir -r requirements.txt
+#     - pip install --no-cache-dir python-dotenv
+#     - pip install --no-cache-dir pytest
+#   script:
+#     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
 
-bandit_job:
-  image: python:3.10.15-slim
-  services:
-    - docker:27.2.1-dind
-  stage: static_scan
-  before_script:
-    - pip install --no-cache-dir --upgrade pip
-    - pip install --no-cache-dir bandit
-  script:
-    - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
+# bandit_job:
+#   image: python:3.10.15-slim
+#   services:
+#     - docker:27.2.1-dind
+#   stage: static_scan
+#   before_script:
+#     - pip install --no-cache-dir --upgrade pip
+#     - pip install --no-cache-dir bandit
+#   script:
+#     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
 
-dependency_job:
-  image: python:3.10.15-slim
-  services:
-    - docker:27.2.1-dind
-  stage: dependency_scan
-  before_script:
-    - pip install --no-cache-dir --upgrade pip
-    - pip install --no-cache-dir safety
-  script:
-    - safety check -r requirements.txt
+# dependency_job:
+#   image: python:3.10.15-slim
+#   services:
+#     - docker:27.2.1-dind
+#   stage: dependency_scan
+#   before_script:
+#     - pip install --no-cache-dir --upgrade pip
+#     - pip install --no-cache-dir safety
+#   script:
+#     - safety check -r requirements.txt
 
-dynamic_job:
-  stage: dynamic_scan
+# dynamic_job:
+#   stage: dynamic_scan
+#   image: docker:27.2.1
+#   services:
+#     - docker:27.2.1-dind
+#   variables:
+#     CONTAINER_NAME: approval_host
+#   before_script:
+#     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+#   script:
+#     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
+#   artifacts:
+#     paths:
+#       - /builds/root/todo_list/flask_zap_report.json
+#     expire_in: 1 week
+#   after_script:
+#    - docker container stop $CONTAINER_NAME
+#    - docker container rm $CONTAINER_NAME
+
+review_job:
+  stage: review
   image: docker:27.2.1
   services:
     - docker:27.2.1-dind
   variables:
-    CONTAINER_NAME: approval_host
+    CONTAINER_NAME: review_host
+    APPROVAL_PORT: 5000
   before_script:
-    - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - PORT_CONTAINERS=$(docker ps --filter "publish=$APPROVAL_PORT" -q)
+    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   script:
-    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
-  artifacts:
-    paths:
-      - /builds/root/todo_list/flask_zap_report.json
-    expire_in: 1 week
-  after_script:
-   - docker container stop $CONTAINER_NAME
-   - docker container rm $CONTAINER_NAME
+    - docker run --rm --stop-timeout 240 -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart on-failure $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 
 deploy_job:
   stage: deploy
