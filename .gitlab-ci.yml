@@ -54,6 +54,7 @@ test_job:
     - echo "FLASK_ENV=testing" >> .env
     - echo "FLASK_DEBUG=True" >> .env
     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
+    - echo "SECRET_KEY=$TEST_SECRET_KEY" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - pip install --no-cache-dir python-dotenv
@@ -100,7 +101,7 @@ dynamic_job:
   variables:
     CONTAINER_NAME: approval_host
   before_script:
-    - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$TEST_SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
   script:
     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
   artifacts:
@@ -126,7 +127,7 @@ review_job:
     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
-    - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$TEST_SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT"
   rules:
     - if: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
