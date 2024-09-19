@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request
 
-from todo_project import app, db, bcrypt, login_counter
+from todo_project import app, db, bcrypt, metrics
 
 # Import the forms
 from todo_project.forms import (LoginForm, RegistrationForm, UpdateUserInfoForm, 
@@ -12,6 +12,13 @@ from todo_project.models import User, Task
 # Import 
 from flask_login import login_required, current_user, login_user, logout_user
 
+metrics.register_default(
+    metrics.summary(
+        'request_processing_seconds', 
+        'Time spent processing request', 
+        labels={'route': lambda: request.endpoint}
+    )
+)
 
 @app.errorhandler(404)
 def error_404(error):
@@ -33,7 +40,7 @@ def about():
 
 
 @app.route("/login", methods=['POST', 'GET'])
-@login_counter
+@metrics.counter('login_requests', 'Número de requisições de login', labels={'status': lambda: request.method})
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('all_tasks'))
@@ -59,12 +66,14 @@ def login():
     
 
 @app.route("/logout")
+@metrics.counter('logout_requests_total', 'Número de requisições de logout', labels={'method': lambda: request.method})
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
 
 @app.route("/register", methods=['POST', 'GET'])
+@metrics.counter('register_requests_total', 'Número de requisições de cadastro', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('all_tasks'))
@@ -87,6 +96,7 @@ def register():
 
 @app.route("/all_tasks")
 @login_required
+@metrics.counter('all_tasks_requests_total', 'Número de requisições para visualização de todas as tarefas', labels={'method': lambda: request.method})
 def all_tasks():
     tasks = User.query.filter_by(username=current_user.username).first().tasks
     app.logger.info(f'Visualização das lista de tarefas do usuário: {current_user.username}')
@@ -95,6 +105,7 @@ def all_tasks():
 
 @app.route("/add_task", methods=['POST', 'GET'])
 @login_required
+@metrics.counter('add_task_requests_total', 'Número de requisições para adicionar tarefa', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def add_task():
     form = TaskForm()
     if form.validate_on_submit():
@@ -113,6 +124,7 @@ def add_task():
 
 @app.route("/all_tasks/<int:task_id>/update_task", methods=['GET', 'POST'])
 @login_required
+@metrics.counter('update_task_requests_total', 'Número de requisições para atualizar tarefa', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def update_task(task_id):
     task = Task.query.get_or_404(task_id)
     form = UpdateTaskForm()
@@ -138,6 +150,7 @@ def update_task(task_id):
 
 @app.route("/all_tasks/<int:task_id>/delete_task")
 @login_required
+@metrics.counter('delete_task_requests_total', 'Número de requisições para deletar tarefa', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task_name = task.content
@@ -150,6 +163,7 @@ def delete_task(task_id):
 
 @app.route("/account", methods=['POST', 'GET'])
 @login_required
+@metrics.counter('account_requests_total', 'Número de requisições para visualização/atualização de conta', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def account():
     form = UpdateUserInfoForm()
     if form.validate_on_submit():
@@ -171,6 +185,7 @@ def account():
 
 @app.route("/account/change_password", methods=['POST', 'GET'])
 @login_required
+@metrics.counter('change_password_requests_total', 'Número de requisições para mudança de senha', labels={'method': lambda: request.method, 'status': lambda: request.method})
 def change_password():
     form = UpdateUserPassword()
     if form.validate_on_submit():

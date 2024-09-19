@@ -40,11 +40,6 @@ bcrypt = Bcrypt(app)
 
 metrics = PrometheusMetrics(app)
 
-login_counter = metrics.counter(
-    'login_count', 'Number of login attempts',
-    labels={'status': lambda r: r.status_code}
-)
-
 @app.after_request
 def add_security_headers(response):
     response.headers["X-Frame-Options"] = 'SAMEORIGIN'
