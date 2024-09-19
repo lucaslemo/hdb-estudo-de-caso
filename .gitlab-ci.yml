@@ -129,7 +129,7 @@ review_job:
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
     - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
-  #   - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT"
+    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT"
   # rules:
   #   - if: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
 
