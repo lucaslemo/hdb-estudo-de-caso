@@ -110,17 +110,19 @@ review_job:
     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
-    - docker run --stop-timeout 240 \
-     --name $CONTAINER_NAME \
-     --network $NETWORK \
-     -p "$APPROVAL_PORT:$APP_PORT" \
-     -v /dev/log:/dev/log \
-     -v /usr/hdb/db:/usr/hdb/db:rw \
-     -e "SECRET_KEY=$SECRET_KEY" \
-     -e "DATABASE_URL=$DATABASE_APPROVAL_URL" \
-     -e "APP_PORT=$APP_PORT" \
-     $IMAGE_TAG \
-     gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+      - docker run \
+        --stop-timeout 240 \
+        --name $CONTAINER_NAME \
+        --network $NETWORK \
+        -p "$APPROVAL_PORT:$APP_PORT" \
+        -v /dev/log:/dev/log \
+        -v /usr/hdb/db:/usr/hdb/db:rw \
+        -e "SECRET_KEY=$SECRET_KEY" \
+        -e "DATABASE_URL=$DATABASE_APPROVAL_URL" \
+        -e "APP_PORT=$APP_PORT" \
+        $IMAGE_TAG \
+        gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    # - docker run --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 
 deploy_job:
   stage: deploy
