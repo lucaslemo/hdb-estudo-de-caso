@@ -24,6 +24,8 @@ build_job:
     - docker:27.2.1-dind
   script:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
+  after_script:
+    - docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
 
 # trivy_job:
 #   stage: image_scan
@@ -85,7 +87,7 @@ build_job:
 #   variables:
 #     CONTAINER_NAME: approval_host
 #   before_script:
-#     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+#     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 #   script:
 #     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
 #   artifacts:
@@ -108,7 +110,7 @@ review_job:
     - PORT_CONTAINERS=$(docker ps --filter "publish=$APPROVAL_PORT" -q)
     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   script:
-    - docker run --rm --stop-timeout 240 -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run --rm --stop-timeout 240 --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 
 deploy_job:
   stage: deploy
