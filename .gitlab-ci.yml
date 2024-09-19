@@ -8,7 +8,7 @@ variables:
 
 stages:
   - build
-  # - image_scan
+  # -   image_scan
   # - tests
   # - static_scan
   # - dependency_scan
@@ -26,8 +26,9 @@ build_job:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
   after_script:
     - docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
-  only:
-    - master
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 # trivy_job:
 #   stage: image_scan
@@ -39,8 +40,9 @@ build_job:
 #     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 #   script:
 #     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
-#   only:
-#       - master
+#   rules:
+#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+#     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 # test_job:
 #   stage: tests
@@ -60,8 +62,9 @@ build_job:
 #     - pip install --no-cache-dir pytest
 #   script:
 #     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
-#   only:
-#   - master
+#   rules:
+#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+#     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 # bandit_job:
 #   image: python:3.10.15-slim
@@ -73,8 +76,9 @@ build_job:
 #     - pip install --no-cache-dir bandit
 #   script:
 #     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
-#   only:
-#     - master
+#   rules:
+#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+#     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 # dependency_job:
 #   image: python:3.10.15-slim
@@ -86,8 +90,9 @@ build_job:
 #     - pip install --no-cache-dir safety
 #   script:
 #     - safety check -r requirements.txt
-#   only:
-#     - master
+#   rules:
+#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master''"
+#     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 # dynamic_job:
 #   stage: dynamic_scan
@@ -107,8 +112,9 @@ build_job:
 #   after_script:
 #    - docker container stop $CONTAINER_NAME
 #    - docker container rm $CONTAINER_NAME
-#   only:
-#     - master
+#   rules:
+#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+#     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 review_job:
   stage: review
@@ -147,9 +153,9 @@ deploy_job:
     - docker compose down
   script:
     - docker compose up -d
-  when: manual
-  only:
-    - master
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 cleanup_job:
   stage: cleanup
