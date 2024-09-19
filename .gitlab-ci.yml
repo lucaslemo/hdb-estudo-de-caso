@@ -108,7 +108,7 @@ review_job:
     - PORT_CONTAINERS=$(docker ps --filter "publish=$APPROVAL_PORT" -q)
     - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   script:
-    - docker run --rm --stop-timeout 240 -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart on-failure $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run --rm --stop-timeout 240 -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 
 deploy_job:
   stage: deploy
