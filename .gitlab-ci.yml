@@ -125,7 +125,9 @@ review_job:
     - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT"
   only:
-    - master
+    - merge_requests
+  rules:
+    - if: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
 
 deploy_job:
   stage: deploy
@@ -135,11 +137,8 @@ deploy_job:
   variables:
     CONTAINER_APPROVAL: review_host
   before_script:
-    - sleep 10
-
     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_APPROVAL")
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_APPROVAL; docker container rm $CONTAINER_APPROVAL; sleep 5; fi
-
     - touch .env
     - echo "FLASK_ENV=$FLASK_ENV" >> .env
     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
@@ -152,6 +151,8 @@ deploy_job:
     - docker compose up -d
   only:
     - master
+  rules:
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 cleanup_job:
   stage: cleanup
