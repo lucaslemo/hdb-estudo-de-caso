@@ -20,6 +20,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Atualiza setuptools para remover a vulnerabilidade CVE-2024-6345
 RUN pip install --no-cache-dir --upgrade setuptools
 
+# Instala o export para o prometheus
+RUN pip install --no-cache-dir prometheus-flask-exporter
+
 # Instala o python-dotenv para carregar as variáveis de ambiente 
 RUN pip install --no-cache-dir python-dotenv
 

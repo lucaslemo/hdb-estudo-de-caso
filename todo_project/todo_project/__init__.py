@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 from logging.handlers import SysLogHandler
+from prometheus_flask_exporter import PrometheusMetrics
 
 env_file = os.path.abspath('.env')
 load_dotenv(dotenv_path=env_file, override=True)
@@ -36,6 +37,13 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'danger'
 
 bcrypt = Bcrypt(app)
+
+metrics = PrometheusMetrics(app)
+
+login_counter = metrics.counter(
+    'login_count', 'Number of login attempts',
+    labels={'status': lambda r: r.status_code}
+)
 
 @app.after_request
 def add_security_headers(response):

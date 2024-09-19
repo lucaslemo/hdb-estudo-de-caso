@@ -1,6 +1,6 @@
 from flask import render_template, url_for, flash, redirect, request
 
-from todo_project import app, db, bcrypt
+from todo_project import app, db, bcrypt, login_counter
 
 # Import the forms
 from todo_project.forms import (LoginForm, RegistrationForm, UpdateUserInfoForm, 
@@ -33,6 +33,7 @@ def about():
 
 
 @app.route("/login", methods=['POST', 'GET'])
+@login_counter
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('all_tasks'))
