@@ -107,8 +107,8 @@ review_job:
     CONTAINER_NAME: review_host
     APPROVAL_PORT: 5000
   before_script:
-    - PORT_CONTAINERS=$(docker ps --filter "publish=$APPROVAL_PORT" -q)
-    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
+    - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
+    - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
     - docker run --rm --stop-timeout 240 --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
 
@@ -126,8 +126,6 @@ deploy_job:
     - echo "APP_PORT=$APP_PORT" >> .env
     - echo "APP_HOST=$APP_HOST" >> .env
     - docker compose down
-    - PORT_CONTAINERS=$(docker ps --filter "publish=$APP_PORT" -q)
-    - if [ -n "$PORT_CONTAINERS" ]; then docker stop $PORT_CONTAINERS; docker rm $PORT_CONTAINERS; sleep 5; fi
   script:
     - docker compose up -d
 
