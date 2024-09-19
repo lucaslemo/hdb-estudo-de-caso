@@ -8,7 +8,7 @@ variables:
 
 stages:
   - build
-  # - image_scan
+  # -  image_scan
   # - tests
   # - static_scan
   # - dependency_scan
