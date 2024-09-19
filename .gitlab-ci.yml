@@ -8,14 +8,14 @@ variables:
 
 stages:
   - build
-  # -  image_scan
-  # - tests
-  # - static_scan
-  # - dependency_scan
-  # - dynamic_scan
+  - image_scan
+  - tests
+  - static_scan
+  - dependency_scan
+  - dynamic_scan
   - review
-  # - deploy
-  # - cleanup
+  - deploy
+  - cleanup
 
 build_job:
   stage: build
@@ -26,95 +26,95 @@ build_job:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
   after_script:
     - docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
-  # rules:
-  #   - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-  #   - if: "$CI_COMMIT_REF_NAME == 'master'"
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# trivy_job:
-#   stage: image_scan
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   before_script:
-#     - apk add --no-cache curl
-#     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-#   script:
-#     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+trivy_job:
+  stage: image_scan
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - apk add --no-cache curl
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+  script:
+    - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# test_job:
-#   stage: tests
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   before_script:
-#     - rm -rf .pytest_cache
-#     - rm -rf .cache/pip
-#     - touch .env
-#     - echo "FLASK_ENV=testing" >> .env
-#     - echo "FLASK_DEBUG=True" >> .env
-#     - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir -r requirements.txt
-#     - pip install --no-cache-dir python-dotenv
-#     - pip install --no-cache-dir pytest
-#   script:
-#     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+test_job:
+  stage: tests
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  before_script:
+    - rm -rf .pytest_cache
+    - rm -rf .cache/pip
+    - touch .env
+    - echo "FLASK_ENV=testing" >> .env
+    - echo "FLASK_DEBUG=True" >> .env
+    - echo "DATABASE_URL=$DATABASE_TEST_URL" >> .env
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir -r requirements.txt
+    - pip install --no-cache-dir python-dotenv
+    - pip install --no-cache-dir pytest
+  script:
+    - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# bandit_job:
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   stage: static_scan
-#   before_script:
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir bandit
-#   script:
-#     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+bandit_job:
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  stage: static_scan
+  before_script:
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir bandit
+  script:
+    - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# dependency_job:
-#   image: python:3.10.15-slim
-#   services:
-#     - docker:27.2.1-dind
-#   stage: dependency_scan
-#   before_script:
-#     - pip install --no-cache-dir --upgrade pip
-#     - pip install --no-cache-dir safety
-#   script:
-#     - safety check -r requirements.txt
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master''"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+dependency_job:
+  image: python:3.10.15-slim
+  services:
+    - docker:27.2.1-dind
+  stage: dependency_scan
+  before_script:
+    - pip install --no-cache-dir --upgrade pip
+    - pip install --no-cache-dir safety
+  script:
+    - safety check -r requirements.txt
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master''"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# dynamic_job:
-#   stage: dynamic_scan
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   variables:
-#     CONTAINER_NAME: approval_host
-#   before_script:
-#     - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
-#   script:
-#     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
-#   artifacts:
-#     paths:
-#       - /builds/root/todo_list/flask_zap_report.json
-#     expire_in: 1 week
-#   after_script:
-#    - docker container stop $CONTAINER_NAME
-#    - docker container rm $CONTAINER_NAME
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+dynamic_job:
+  stage: dynamic_scan
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  variables:
+    CONTAINER_NAME: approval_host
+  before_script:
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+  script:
+    - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT" -j /builds/root/todo_list/flask_zap_report.json
+  artifacts:
+    paths:
+      - /builds/root/todo_list/flask_zap_report.json
+    expire_in: 1 week
+  after_script:
+   - docker container stop $CONTAINER_NAME
+   - docker container rm $CONTAINER_NAME
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 review_job:
   stage: review
@@ -128,40 +128,40 @@ review_job:
     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
-    - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" --restart always $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
     - docker run --network $NETWORK -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -I -t "http://$CONTAINER_NAME:$APP_PORT"
-  # rules:
-  #   - if: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+  rules:
+    - if: "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
 
-# deploy_job:
-#   stage: deploy
-#   image: docker:27.2.1
-#   services:
-#     - docker:27.2.1-dind
-#   variables:
-#     CONTAINER_APPROVAL: review_host
-#   before_script:
-#     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_APPROVAL")
-#     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_APPROVAL; docker container rm $CONTAINER_APPROVAL; sleep 5; fi
-#     - touch .env
-#     - echo "FLASK_ENV=$FLASK_ENV" >> .env
-#     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
-#     - echo "SECRET_KEY=$SECRET_KEY" >> .env
-#     - echo "DATABASE_URL=$DATABASE_URL" >> .env
-#     - echo "APP_PORT=$APP_PORT" >> .env
-#     - echo "APP_HOST=$APP_HOST" >> .env
-#     - docker compose down
-#   script:
-#     - docker compose up -d
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+deploy_job:
+  stage: deploy
+  image: docker:27.2.1
+  services:
+    - docker:27.2.1-dind
+  variables:
+    CONTAINER_APPROVAL: review_host
+  before_script:
+    - CONTAINER=$(docker ps -aqf "name=$CONTAINER_APPROVAL")
+    - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_APPROVAL; docker container rm $CONTAINER_APPROVAL; sleep 5; fi
+    - touch .env
+    - echo "FLASK_ENV=$FLASK_ENV" >> .env
+    - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
+    - echo "SECRET_KEY=$SECRET_KEY" >> .env
+    - echo "DATABASE_URL=$DATABASE_URL" >> .env
+    - echo "APP_PORT=$APP_PORT" >> .env
+    - echo "APP_HOST=$APP_HOST" >> .env
+    - docker compose down
+  script:
+    - docker compose up -d
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
 
-# cleanup_job:
-#   stage: cleanup
-#   script:
-#     - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
-#   when: always
-#   rules:
-#     - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
-#     - if: "$CI_COMMIT_REF_NAME == 'master'"
+cleanup_job:
+  stage: cleanup
+  script:
+    - rm -rf "%CACHE_PATH%/%CI_PIPELINE_ID%"
+  when: always
+  rules:
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == 'master'"
+    - if: "$CI_COMMIT_REF_NAME == 'master'"
