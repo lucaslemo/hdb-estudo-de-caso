@@ -50,8 +50,6 @@ test_job:
   services:
     - docker:27.2.1-dind
   before_script:
-    - rm -rf .pytest_cache
-    - rm -rf .cache/pip
     - touch .env
     - echo "FLASK_ENV=testing" >> .env
     - echo "FLASK_DEBUG=True" >> .env
