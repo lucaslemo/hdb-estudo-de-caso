@@ -26,6 +26,8 @@ build_job:
     - docker build --build-arg PORT=$APP_PORT -t $IMAGE_TAG -f ./docker/flask/Dockerfile .
   after_script:
     - docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
+  only:
+    - master
 
 # trivy_job:
 #   stage: image_scan
@@ -37,6 +39,8 @@ build_job:
 #     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 #   script:
 #     - trivy image --ignore-unfixed --severity HIGH,CRITICAL $IMAGE_TAG
+#   only:
+#       - master
 
 # test_job:
 #   stage: tests
@@ -56,6 +60,8 @@ build_job:
 #     - pip install --no-cache-dir pytest
 #   script:
 #     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
+#   only:
+#   - master
 
 # bandit_job:
 #   image: python:3.10.15-slim
@@ -67,6 +73,8 @@ build_job:
 #     - pip install --no-cache-dir bandit
 #   script:
 #     - bandit -r todo_project/todo_project --severity-level low --confidence-level low --exclude venv,tests
+#   only:
+#     - master
 
 # dependency_job:
 #   image: python:3.10.15-slim
@@ -78,6 +86,8 @@ build_job:
 #     - pip install --no-cache-dir safety
 #   script:
 #     - safety check -r requirements.txt
+#   only:
+#     - master
 
 # dynamic_job:
 #   stage: dynamic_scan
@@ -97,6 +107,8 @@ build_job:
 #   after_script:
 #    - docker container stop $CONTAINER_NAME
 #    - docker container rm $CONTAINER_NAME
+#   only:
+#     - master
 
 review_job:
   stage: review
@@ -110,7 +122,9 @@ review_job:
     - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
     - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
   script:
-    - docker run --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+    - docker run -d --name $CONTAINER_NAME --network $NETWORK -p "$APPROVAL_PORT:$APP_PORT" -v /dev/log:/dev/log -v /usr/hdb/db:/usr/hdb/db:rw -e "SECRET_KEY=$SECRET_KEY" -e "DATABASE_URL=$DATABASE_APPROVAL_URL" -e "APP_PORT=$APP_PORT" $IMAGE_TAG gunicorn --bind "$APP_HOST:$APP_PORT" todo_project:app
+  only:
+    - master
 
 deploy_job:
   stage: deploy
@@ -118,6 +132,11 @@ deploy_job:
   services:
     - docker:27.2.1-dind
   before_script:
+    - sleep 5
+    
+    - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
+    - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
+
     - touch .env
     - echo "FLASK_ENV=$FLASK_ENV" >> .env
     - echo "FLASK_DEBUG=$FLASK_DEBUG" >> .env
@@ -128,6 +147,8 @@ deploy_job:
     - docker compose down
   script:
     - docker compose up -d
+  only:
+    - master
 
 cleanup_job:
   stage: cleanup
