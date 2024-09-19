@@ -131,11 +131,13 @@ deploy_job:
   image: docker:27.2.1
   services:
     - docker:27.2.1-dind
+  variables:
+    CONTAINER_APPROVAL: review_host
   before_script:
-    - sleep 5
-    
-    - CONTAINER=$(docker ps -aqf "name=$CONTAINER_NAME")
-    - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_NAME; docker container rm $CONTAINER_NAME; sleep 5; fi
+    - sleep 180
+
+    - CONTAINER=$(docker ps -aqf "name=$CONTAINER_APPROVAL")
+    - if [ -n "$CONTAINER" ]; then docker container stop $CONTAINER_APPROVAL; docker container rm $CONTAINER_APPROVAL; sleep 5; fi
 
     - touch .env
     - echo "FLASK_ENV=$FLASK_ENV" >> .env
