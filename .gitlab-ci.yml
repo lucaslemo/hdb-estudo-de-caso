@@ -57,7 +57,6 @@ test_job:
     - echo "SECRET_KEY=$TEST_SECRET_KEY" >> .env
     - pip install --no-cache-dir --upgrade pip
     - pip install --no-cache-dir -r requirements.txt
-    - pip install --no-cache-dir python-dotenv
     - pip install --no-cache-dir pytest
   script:
     - pytest todo_project/todo_project/tests/test_app.py -p no:cacheprovider
