@@ -154,7 +154,7 @@ deploy_job:
   script:
     - docker compose up -d
   rules:
-    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' "
+    - if: "$CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME != 'master'"
     - if: "$CI_COMMIT_REF_NAME == 'master'"
 
 cleanup_job:
