@@ -147,6 +147,7 @@ deploy_job:
     - docker compose down
   script:
     - docker compose up -d
+  when: manual
   only:
     - master
 
